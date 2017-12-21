@@ -9,6 +9,7 @@ namespace HESM.MODAL
 {
    public class Connection
     {
+        #region Configuração banco de dados
         //instancia a conexão padrao do SQL
         private MySqlConnection mConn = new MySqlConnection(
              "Persist Security Info=False;" + //tira o pedido de senha/usuário toda hora
@@ -17,11 +18,11 @@ namespace HESM.MODAL
              "uid=root;" +//usuário de acesso
              "pwd="//senha do usuário
              );
-
+        #endregion
         //método para desconectar o banco de dados
         public MySqlConnection connect()
         {
-            //verifico se a conexão está fechada antes de abrir
+            //verifica se a conexão está fechada antes de abrir
             if (mConn.State == System.Data.ConnectionState.Closed)
             {
                 mConn.Open();
@@ -31,8 +32,7 @@ namespace HESM.MODAL
         //método para desconectar o banco de dados
         public void disconnect()
         {
-
-            //verifico se a conexão está aberta antes de fechar
+            //verifica se a conexão está aberta antes de fechar
             if (mConn.State == System.Data.ConnectionState.Open)
             {
                 mConn.Close();

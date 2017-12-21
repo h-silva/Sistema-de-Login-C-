@@ -11,14 +11,14 @@ using HESM.CONTROL;
 
 namespace HESM.VIEW
 {
-    public partial class frmLogin : Form
+    public partial class frmCadastroLogin : Form
     {
-        public frmLogin()
+        public frmCadastroLogin()
         {
             InitializeComponent();
         }
 
-        private void btnEntrar_Click(object sender, EventArgs e)
+        private void btnCadastrar_Click(object sender, EventArgs e)
         {
             //instancia uma classe Controll para controlar meu formulário
             Controll controle = new Controll();
@@ -27,23 +27,23 @@ namespace HESM.VIEW
             string usuario = txtUsuario.Text;
             string senha = txtSenha.Text;
 
+            //chama a função para tentar inserir o usuario           
+            controle.criarLogin(usuario, senha);
 
-            //faz a busca para verificar se o login é correto ou não
-            controle.acessarLogin(usuario, senha);
+            MessageBox.Show(controle.mensagem,"Retorno",MessageBoxButtons.OK,MessageBoxIcon.Information);
 
-            //se o login não estiver correto igual ao banco de dados
-            if (controle.verificaLogin == false)
+            //Se conseguir criar o usuario, fecho a tela
+            if (controle.loginInserido == true)
             {
-                MessageBox.Show("Erro de Login! Tente novamente.", "Mensagem", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.Close();
+            }
+
+            //se não limpa os campos para tentar + 1 vez
+            else
+            {
                 txtSenha.Clear();
                 txtUsuario.Clear();
                 txtUsuario.Focus();
-            }
-            //se estiver correto
-            else
-            {
-                MessageBox.Show("BEM-VINDO!", "Mensagem", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                frmLogin.ActiveForm.Close();
             }
         }
 

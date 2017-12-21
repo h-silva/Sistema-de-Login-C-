@@ -10,11 +10,12 @@ namespace HESM.MODAL
 {
     class LoginDAOcommands
     {
-        //variavel para verificar a resposta do banco de dados
-        public bool verificaLogin = false;
+        #region Variaveis gerais
+        //variavel para armazenar a senha do banco de dados
+        public string senhaBD = "";
 
         //variavel para guardar a mensagem caso haja erro
-        public String mensagem = "";
+        public string mensagem = "";
 
         //variavel de comando sql
         MySqlCommand comandoSQL = new MySqlCommand();
@@ -24,35 +25,117 @@ namespace HESM.MODAL
 
         //uma variavel de tabela para armazenar os resultados
         MySqlDataReader dr;
+        #endregion
 
-        public bool verificarLogin(String usuario, String senha)
+        public string verificarLogin(string usuario)
         {
             //comando sql que verifica se o usuario existe cadastrado no banco
-            comandoSQL.CommandText = "SELECT * FROM tb_login WHERE nomeLogin = @usuario AND senhaLogin = @senha";
+            comandoSQL.CommandText = "SELECT senhaLogin FROM tb_login WHERE nomeLogin = @usuario";
 
             //adiciona os parametros para os points do select
             comandoSQL.Parameters.AddWithValue("@usuario", usuario);
-            comandoSQL.Parameters.AddWithValue("@senha", senha);
 
+            //tento fazer o select
             try
             {
                 //define que o camando sql é recebido da conexão, quando ela conectada
                 comandoSQL.Connection = mConn.connect();
 
-                //armazena os resultados do select na tabela
+                //fasso a leitura da query
                 dr = comandoSQL.ExecuteReader();
 
-                //verifica se a tabela contem linhas do resultado
+                //se conter linhas no resultado da leitura
                 if (dr.HasRows)
                 {
-                    verificaLogin = true;
+                    //armazena os resultados do select na tabela                   
+                    while (dr.Read())
+                    {
+                        senhaBD = dr.GetString(0);
+                    }
+                }
+
+                //se não conter
+                else
+                {
+                    this.mensagem = "Usuário Invalido";
                 }
             }
+            //se eu não conseguir fazer o select
             catch (MySqlException ex)
             {
                 this.mensagem = ex.ToString();
             }
-            return verificaLogin;
+            //retorno o hash salvo no banco de dados
+            return senhaBD;
+        }
+
+        public bool inserirLogin(string usuario, string senha)
+        {
+            bool loginInserido = false;
+
+            //tento executar a query
+            try
+            {
+                //Verifica se o usuario que esta tentando cadastrar já existe
+                comandoSQL.CommandText = "SELECT * FROM tb_login WHERE nomeLogin = @usuario";
+
+                //adiciona os parametros para os points do select
+                comandoSQL.Parameters.AddWithValue("@usuario", usuario);
+
+                //define que o camando sql é recebido da conexão, quando ela conectada
+                comandoSQL.Connection = mConn.connect();
+
+                //executo a query
+                dr = comandoSQL.ExecuteReader();
+
+                //fecho a conexão com o banco de dados
+                mConn.disconnect();
+
+                //se estiver usuario já cadastrado
+                if (dr.HasRows)
+                {
+                    this.mensagem = "Já existe um cadastro com este usuario!";
+                }
+                //se não tiver
+                else                   
+                {
+                    //tenta inserir o usuario
+                    try
+                    {
+                        comandoSQL.CommandText = "INSERT INTO tb_login" +
+                          "(nomeLogin,senhaLogin)" +
+                          "VALUES" +
+                          "('" + usuario +
+                          "','" + senha + "')";
+
+                        //define que o camando sql é recebido da conexão, quando ela conectada
+                        comandoSQL.Connection = mConn.connect();
+
+                        //executa a query
+                        comandoSQL.ExecuteNonQuery();
+
+                        //fecha a conexão com o banco de dados
+                        mConn.disconnect();
+
+                        //aqui fala que o usuario foi inserido com sucesso
+                        loginInserido = true;
+
+                        this.mensagem = "Login Cadastrado com sucesso!";
+                    }
+                    catch (MySqlException mex)
+                    {
+                        loginInserido = false;
+                        this.mensagem = "Erro ao cadastrar \n " + mex.ToString();
+                    }
+                }
+            }
+            catch (MySqlException mex)
+            {
+                this.mensagem = "Erro com o banco de dados \n " + mex.ToString();
+            }
+
+            //retorna se o usuario foi inserido ou não
+            return loginInserido;
         }
     }
 }
